@@ -2,8 +2,7 @@
 
 A piano template for anyone looking to make a piano instrument in Kontakt
 
-Round robins, sustain pedals, and release trigger code by Dave Hilowitz
-UI code by Angus Roberts-Carey
+Round robins, sustain pedals, and release trigger code by Dave Hilowitz. UI code by Angus Roberts-Carey.
 
 ## Features
 - Support for round robin
