@@ -125,6 +125,10 @@ on init
 end on
 
 function func_play_regular_note
+    if(%notes_playing[$func_play_note_midi_note] > 0)
+        fade_out(%notes_playing[$func_play_note_midi_note], 1000, 1)
+    end if
+    
     if(num_elements(%note_without_pedal_groups) <= 0)
         exit
     else
@@ -153,6 +157,10 @@ function func_play_regular_note
 end function
 
 function func_play_sustain_note
+    if(%notes_playing[$func_play_note_midi_note] > 0)
+        fade_out(%notes_playing[$func_play_note_midi_note], 1000, 1)
+    end if
+
     if(num_elements(%note_with_pedal_groups) <= 0)
         exit
     else
