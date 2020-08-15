@@ -1,4 +1,4 @@
- { Piano Template Script 1.0 by Dave Hilowitz }
+ { Piano Template Script by Dave Hilowitz }
  { Note triggering scripts by Dave Hilowitz }
  { UI scripts by Angus-Roberts Carey (ARC Samples) }
 
@@ -35,16 +35,14 @@ on init
     declare $i
     declare $tmp_note_id
     declare $tmp_event_note
-    declare polyphonic $parent_id
+    declare polyphonic $ignored_event_id
     declare const $ARRAY_SIZE := 500
     declare %tmp_event_ids[$ARRAY_SIZE]
     
     declare $pedal_down := 0
     declare $func_play_note_midi_note
     declare $func_play_note_velocity
-    
-    declare %notes_playing[128]
-    declare %keys_held[128]
+    declare $func_stop_note_midi_note
 
     { Round robin tracking stuff }
     declare $tmp_rr := 0
@@ -125,10 +123,7 @@ on init
 end on
 
 function func_play_regular_note
-    if(%notes_playing[$func_play_note_midi_note] > 0)
-        fade_out(%notes_playing[$func_play_note_midi_note], $key_up_release_time_ms * 1000, 1)
-    end if
-    
+    { message("func_play_regular_note") }
     if(num_elements(%note_without_pedal_groups) <= 0)
         exit
     else
@@ -152,15 +147,11 @@ function func_play_regular_note
     $tmp_note_id := play_note($func_play_note_midi_note, $func_play_note_velocity, 0, -1) 
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,0,$ALL_GROUPS)
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,1,%note_without_pedal_groups[$tmp_rr])
-    %notes_playing[$func_play_note_midi_note] := $tmp_note_id
+    { %notes_playing[$func_play_note_midi_note] := $tmp_note_id }
     
 end function
 
 function func_play_sustain_note
-    if(%notes_playing[$func_play_note_midi_note] > 0)
-        fade_out(%notes_playing[$func_play_note_midi_note], $key_up_release_time_ms * 1000, 1)
-    end if
-
     if(num_elements(%note_with_pedal_groups) <= 0)
         exit
     else
@@ -184,11 +175,11 @@ function func_play_sustain_note
     $tmp_note_id := play_note($func_play_note_midi_note, $func_play_note_velocity, 0, -1) 
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,0,$ALL_GROUPS)
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,1,%note_with_pedal_groups[$tmp_rr])
-    %notes_playing[$func_play_note_midi_note] := $tmp_note_id
+    { %notes_playing[$func_play_note_midi_note] := $tmp_note_id }
 end function
 
 function func_play_release_trigger
-    { message("release trigger") }
+    { message("func_play_RT: " & $func_play_note_midi_note) }
     if(num_elements(%release_trigger_groups) <= 0)
         exit
     else
@@ -269,21 +260,49 @@ function func_play_pedal_up
 end function
 
 function func_stop_all_non_held_notes
+    { message("func_stop_all_non_held_notes called") }
+    get_event_ids(%tmp_event_ids)
     $i := 0
-    { Cycle through all of the possible MIDI notes. }
-    while($i < 128)
-        
-        { If the event corresponds to a note that is currently playing  }
-        { ...and if the key is not down. In other words, if the }
-        if ((%notes_playing[$i] > 0) and (%KEY_DOWN[$i] = 0))
+    { $note_count := 0 }
+    while($i < $ARRAY_SIZE and %tmp_event_ids[$i] # 0)
+        { message("event found: " & %tmp_event_ids[$i]) }
+        $tmp_event_note := get_event_par(%tmp_event_ids[$i], $EVENT_PAR_NOTE) 
+        { message("event " & %tmp_event_ids[$i] & "; MIDI note " & $tmp_event_note & "; keydown=" & %KEY_DOWN[$tmp_event_note]) }
+        if (%KEY_DOWN[$tmp_event_note] = 0)
+            { message("Stopping MIDI note: " & $tmp_event_note) }
             { stop it! }
-            fade_out(%notes_playing[$i], $key_up_release_time_ms * 1000, 1)
+            fade_out(%tmp_event_ids[$i], $key_up_release_time_ms * 1000, 1)
             { note_off($i) }
-            %notes_playing[$i] := 0
+            { %notes_playing[$tmp_event_note] := 0 }
         end if
         inc($i)
     end while
+    { message("Active Events: " & $note_count) }
+end function
 
+{ cycle through all events that are currently taking place 
+  and stop any note that has the same MIDI note number }
+        
+function func_stop_midi_note_if_playing
+    { message("func_stop_midi_note_if_playing called") }
+    get_event_ids(%tmp_event_ids)
+    $i := 0
+    while($i < $ARRAY_SIZE and %tmp_event_ids[$i] # 0)
+        if (event_status(%tmp_event_ids[$i]) = $EVENT_STATUS_NOTE_QUEUE and %tmp_event_ids[$i] # $ignored_event_id)
+            { message("event found: " & %tmp_event_ids[$i]) }
+            $tmp_event_note := get_event_par(%tmp_event_ids[$i], $EVENT_PAR_NOTE) 
+            { message("event " & %tmp_event_ids[$i] & "; MIDI note " & $tmp_event_note & "; keydown=" & %KEY_DOWN[$tmp_event_note]) }
+            if ($func_stop_note_midi_note = $tmp_event_note)
+                { message("Stopping MIDI note: " & $tmp_event_note) }
+                { stop it! }
+                fade_out(%tmp_event_ids[$i], $key_up_release_time_ms * 1000, 1)
+                { note_off($i) }          
+            end if
+        end if
+        inc($i)
+    end while
+    
+    { %notes_playing[$func_stop_note_midi_note] := 0 }
 end function
 
 on controller
@@ -305,7 +324,8 @@ end on
 
 on note
     ignore_event($EVENT_ID)
-    $parent_id := $EVENT_ID
+    { message($EVENT_ID) }
+    $ignored_event_id := $EVENT_ID
     
     $func_play_note_midi_note := $EVENT_NOTE
     $func_play_note_velocity := $EVENT_VELOCITY
@@ -313,24 +333,31 @@ on note
     if (%CC[64] >= 64)
         call func_play_sustain_note
     else
+        
+        $func_stop_note_midi_note := $func_play_note_midi_note
+        call func_stop_midi_note_if_playing       
         call func_play_regular_note
     end if
 end on
 
 on release 
     ignore_event($EVENT_ID)
+    { message("release event: " & $EVENT_ID) }
+    if($EVENT_ID = $ignored_event_id) 
+        exit
+    end if
     
     if(%CC[64] < 64)
-        fade_out($EVENT_ID, $key_up_release_time_ms * 1000, 1)
-        %notes_playing[$EVENT_NOTE] := 0
+        $func_stop_note_midi_note := $EVENT_NOTE
+        call func_stop_midi_note_if_playing
     end if    
 
     { We play the release trigger regardless of whether or not the pedal is down. }
-    if ($EVENT_ID = $parent_id)        
-        $func_play_note_midi_note := $EVENT_NOTE
-        $func_play_note_velocity := $EVENT_VELOCITY
-        call func_play_release_trigger
-    end if
+    
+    $func_play_note_midi_note := $EVENT_NOTE
+    $func_play_note_velocity := $EVENT_VELOCITY
+    call func_play_release_trigger
+    
 end on
 
 on ui_control($One)
