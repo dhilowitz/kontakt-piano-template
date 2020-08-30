@@ -1,6 +1,15 @@
- { Piano Template Script by Dave Hilowitz }
- { Note triggering scripts by Dave Hilowitz }
- { UI scripts by Angus-Roberts Carey (ARC Samples) }
+{ 
+
+  PIANOBOOK PIANO TEMPLATE - VOICE TRIGGERING SCRIPT 
+  
+  There are two scripts in this template. The first script is the UI Portion. 
+  The second script controls the triggering of piano groups. The two scripts 
+  can be used independently of eachother.
+  
+  Note triggering scripts by Dave Hilowitz
+  UI scripts by Angus-Roberts Carey (ARC Samples) 
+
+}
 
 on init
 
@@ -23,9 +32,10 @@ on init
     declare %pedal_up_groups[4]            := (16,17,18,19)
     { Release time that gets used when finger is let up on keys }
     declare $key_up_release_time_ms        := 400
-
-    { This controls how responsive the knobs are. Make sure to keep this negative if you want this to be controllable via vertical dragging. }
-    declare $controlSensitivity := -500
+    { If you set this to 0, the round robins will be sequential, otherwise 
+    they will be random (but with code to prevent the same sample triggering twice 
+    in a row).} 
+    declare $randomize_round_robins := 1
 
     { DON'T EDIT BELOW THIS POINT UNLESS YOU KNOW WHAT YOU'RE DOING }
 
@@ -51,75 +61,6 @@ on init
     declare $release_trigger_last_rr := 0
     declare $pedal_down_last_rr := 0
     declare $pedal_up_last_rr := 0
-
-    { UI Stuff }
-    { Tell Kontakt we want a visible Performance View }
-    make_perfview
-
-    { Set the UI height and width for a our Performance View }
-    set_ui_height_px(280) 
-    set_ui_width_px(633)
-
-    set_control_par_str($INST_ICON_ID,$CONTROL_PAR_PICTURE,"BLANK_ICON")
-    set_control_par_str($INST_WALLPAPER_ID,$CONTROL_PAR_PICTURE,"Template_Skin")
-
-    { This variable will be used for setting volumes in the $Vol knob handler. }
-    declare $count
-
-    { Declare top row of controls. These control volumes for the three busses. }
-    declare ui_slider $One(1, 500000)
-    make_persistent($One)
-    declare $OneId
-    $OneId := get_ui_id($One)
-    set_control_par_str($OneId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($OneId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
-
-    declare ui_slider $Two(1, 500000)
-    make_persistent($Two)
-    declare $TwoId
-    $TwoId := get_ui_id($Two)
-    set_control_par_str($TwoId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($TwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
-
-    declare ui_slider $Three(1, 500000)
-    make_persistent($Three)
-    declare $ThreeId
-    $ThreeId := get_ui_id($Three)
-    set_control_par_str($ThreeId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($ThreeId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
-
-    { Positions the top row of controls }
-    move_control_px($One, 195,95)
-    move_control_px($Two,295,95)
-    move_control_px($Three,395,95)
-
-    { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1,500000)
-    make_persistent($Vol)
-    declare $VolId
-    $VolId := get_ui_id($Vol)
-    set_control_par_str($VolId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($VolId,$CONTROL_PAR_MOUSE_BEHAVIOUR,$controlSensitivity)
-
-    declare ui_slider $FxOne(1, 1000000)
-    make_persistent($FxOne)
-    declare $FxOneId
-    $FxOneId := get_ui_id($FxOne)
-    set_control_par_str($FxOneId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($FxOneId,$CONTROL_PAR_MOUSE_BEHAVIOUR,$controlSensitivity)
-
-    declare ui_slider $FxTwo(1, 500000)
-    make_persistent($FxTwo)
-    declare $FxTwoId
-    $FxTwoId := get_ui_id($FxTwo)
-    set_control_par_str($FxTwoId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($FxTwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR,$controlSensitivity)
-
-    { Positions the bottom row of controls }
-    move_control_px($Vol, 195,195)
-    move_control_px($FxOne,295,195)
-    move_control_px($FxTwo,395,195)
-
 end on
 
 function func_play_regular_note
@@ -133,11 +74,17 @@ function func_play_regular_note
             if(num_elements(%note_without_pedal_groups) = 2) 
                 $tmp_rr := 1 - $note_without_pedal_last_rr
             else
-                if(num_elements(%note_without_pedal_groups) > 2)
+                if($randomize_round_robins = 1) 
                     $tmp_rr := random(0,num_elements(%note_without_pedal_groups) - 1)
                     while($tmp_rr = $note_without_pedal_last_rr) 
                         $tmp_rr := random(0,num_elements(%note_without_pedal_groups) - 1)
                     end while
+                else
+                    if (($note_without_pedal_last_rr + 1) > (num_elements(%note_without_pedal_groups) - 1))
+                        $tmp_rr := 0
+                    else
+                        $tmp_rr := $note_without_pedal_last_rr + 1
+                    end if
                 end if
             end if
         end if
@@ -161,11 +108,17 @@ function func_play_sustain_note
             if(num_elements(%note_with_pedal_groups) = 2) 
                 $tmp_rr := 1 - $note_with_pedal_last_rr
             else
-                if(num_elements(%note_with_pedal_groups) > 2)
+                if($randomize_round_robins = 1) 
                     $tmp_rr := random(0,num_elements(%note_with_pedal_groups) - 1)
                     while($tmp_rr = $note_with_pedal_last_rr) 
                         $tmp_rr := random(0,num_elements(%note_with_pedal_groups) - 1)
                     end while
+                else
+                    if (($note_with_pedal_last_rr + 1) > (num_elements(%note_with_pedal_groups) - 1))
+                        $tmp_rr := 0
+                    else
+                        $tmp_rr := $note_with_pedal_last_rr + 1
+                    end if
                 end if
             end if
         end if
@@ -187,18 +140,24 @@ function func_play_release_trigger
             $tmp_rr := 0
         else
             if(num_elements(%release_trigger_groups) = 2) 
-                $tmp_rr := 1 - $note_with_pedal_last_rr
+                $tmp_rr := 1 - $release_trigger_last_rr
             else
-                if(num_elements(%release_trigger_groups) > 2)
+                if($randomize_round_robins = 1) 
                     $tmp_rr := random(0,num_elements(%release_trigger_groups) - 1)
-                    while($tmp_rr = $note_with_pedal_last_rr) 
+                    while($tmp_rr = $release_trigger_last_rr) 
                         $tmp_rr := random(0,num_elements(%release_trigger_groups) - 1)
                     end while
+                else
+                    if (($release_trigger_last_rr + 1) > (num_elements(%release_trigger_groups) - 1))
+                        $tmp_rr := 0
+                    else
+                        $tmp_rr := $release_trigger_last_rr + 1
+                    end if
                 end if
             end if
         end if
     end if
-    $note_with_pedal_last_rr := $tmp_rr
+    $release_trigger_last_rr := $tmp_rr
 
     $tmp_note_id := play_note($func_play_note_midi_note, $func_play_note_velocity, 0, -1)
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,0,$ALL_GROUPS)
@@ -214,18 +173,24 @@ function func_play_pedal_down
             $tmp_rr := 0
         else
             if(num_elements(%pedal_down_groups) = 2) 
-                $tmp_rr := 1 - $note_with_pedal_last_rr
+                $tmp_rr := 1 - $pedal_down_last_rr
             else
-                if(num_elements(%pedal_down_groups) > 2)
+                if($randomize_round_robins = 1) 
                     $tmp_rr := random(0,num_elements(%pedal_down_groups) - 1)
-                    while($tmp_rr = $note_with_pedal_last_rr) 
+                    while($tmp_rr = $pedal_down_last_rr) 
                         $tmp_rr := random(0,num_elements(%pedal_down_groups) - 1)
                     end while
+                else
+                    if (($pedal_down_last_rr + 1) > (num_elements(%pedal_down_groups) - 1))
+                        $tmp_rr := 0
+                    else
+                        $tmp_rr := $pedal_down_last_rr + 1
+                    end if
                 end if
             end if
         end if
     end if
-    $note_with_pedal_last_rr := $tmp_rr
+    $pedal_down_last_rr := $tmp_rr
 
     $tmp_note_id := play_note(64, 64, 0, 0)
     set_event_par_arr($tmp_note_id , $EVENT_PAR_ALLOW_GROUP, 0, $ALL_GROUPS)
@@ -241,18 +206,24 @@ function func_play_pedal_up
             $tmp_rr := 0
         else
             if(num_elements(%pedal_up_groups) = 2) 
-                $tmp_rr := 1 - $note_with_pedal_last_rr
+                $tmp_rr := 1 - $pedal_up_last_rr
             else
-                if(num_elements(%pedal_up_groups) > 2)
+                if($randomize_round_robins = 1) 
                     $tmp_rr := random(0,num_elements(%pedal_up_groups) - 1)
-                    while($tmp_rr = $note_with_pedal_last_rr) 
+                    while($tmp_rr = $pedal_up_last_rr) 
                         $tmp_rr := random(0,num_elements(%pedal_up_groups) - 1)
                     end while
+                else
+                    if (($pedal_up_last_rr + 1) > (num_elements(%note_without_pedal_groups) - 1))
+                        $tmp_rr := 0
+                    else
+                        $tmp_rr := $pedal_up_last_rr + 1
+                    end if
                 end if
             end if
         end if
     end if
-    $note_with_pedal_last_rr := $tmp_rr
+    $pedal_up_last_rr := $tmp_rr
 
     $tmp_note_id := play_note(64, 64, 0, 0)
     set_event_par_arr($tmp_note_id , $EVENT_PAR_ALLOW_GROUP, 0, $ALL_GROUPS)
@@ -358,37 +329,5 @@ on release
     $func_play_note_velocity := $EVENT_VELOCITY
     call func_play_release_trigger
     
-end on
-
-on ui_control($One)
-    { Sets the volume of the `Group 1` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $One,-1,-1,$NI_BUS_OFFSET + 0)
-end on
-
-on ui_control($Two)
-    { Sets the volume of the `Group 2` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $Two,-1,-1,$NI_BUS_OFFSET + 1)
-end on
-
-on ui_control($Three)
-    { Sets the volume of the `Group 3` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $Three,-1,-1,$NI_BUS_OFFSET + 2)
-end on
-
-on ui_control($Vol)
-    { This loops through all groups and sets their volume according to the $Vol knob. }
-    $count := 0
-    while ($count < $NUM_GROUPS)
-        set_engine_par($ENGINE_PAR_VOLUME, $Vol, $count, -1, -1)
-        inc($count)
-    end while
-end on
-
-on ui_control($FxOne)
-    set_engine_par($ENGINE_PAR_CUTOFF, $FxOne, -1,0,1)
-end on 
-
-on ui_control($FxTwo)
-    set_engine_par($ENGINE_PAR_SENDLEVEL_0, $FxTwo,-1,7 ,0)
 end on
 
