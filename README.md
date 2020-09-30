@@ -9,6 +9,7 @@ Round robins, sustain pedals, and release trigger code by Dave Hilowitz. UI code
 - Support pedal up and pedal up sounds
 - Support for release trigger sounds
 - Release triggers sound even when the sustain pedal is down
+- Support for Multiple Mics
 
 ## Video Walkthrough
 
