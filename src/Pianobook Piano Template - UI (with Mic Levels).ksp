@@ -4,7 +4,8 @@
   
   There are two scripts in this template. The first script is the UI Portion. 
   The second script controls the triggering of piano groups. The two scripts 
-  can be used independently of eachother.
+  can be used independently of eachother. There are also two versions of the UI script:
+  a simple version and a multiple mic version. This is the multiple mic version.
   
   UI scripts by Dave Hilowitz & Angus-Roberts Carey (ARC Samples) 
 
@@ -12,12 +13,15 @@
 
 on init
 
-    { These variables are used by the Notes, RT, and Pedal knobs. Remember to change the size of
-      the arrays (the number in brackets after the array name) if you
-      add multiple groups to any of these.}
-    declare %note_groups[8]                := (0,1,2,3,4,5,6,7)
-    declare %release_trigger_groups[4]     := (8,9,10,11)
-    declare %pedal_groups[8]               := (12,13,14,15,16,17,18,19)
+    { These variables are used by the Notes, RT, and Pedal knobs. Make sure you include 
+      the groups for all the mics. Remember to change the size of the  arrays (the number 
+      in brackets after the array name) if you add multiple groups to any of these.}
+
+    {                                       Groups for Mic 1         Groups for Mic 2         Groups for Mic 3       }
+    {                                       vvvvvvvvvvvvvvvv         vvvvvvvvvvvvvvvv         vvvvvvvvvvvvvvvv       }
+    declare %note_groups[24]            := (0,1,2,3,4,5,6,7,         20,21,22,23,24,25,26,27, 40,41,42,43,44,45,46,47)
+    declare %release_trigger_groups[12] := (8,9,10,11,               28,29,30,31,             48,49,50,51)
+    declare %pedal_groups[24]           := (12,13,14,15,16,17,18,19, 32,33,34,35,36,37,38,39, 52,53,54,55,56,57,58,59)
 
     { This controls how responsive the knobs are. Make sure to keep this negative if you want this to be controllable via vertical dragging. }
     declare $controlSensitivity := -500
