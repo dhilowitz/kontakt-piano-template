@@ -73,7 +73,7 @@ on init
 
     { Declare knobs for the middle row of controls }
     declare ui_slider $NotesSlider(1, 630000)
-
+    set_knob_defval($NotesSlider, 630000)
     make_persistent($NotesSlider)
     declare $NotesSliderId
     $NotesSliderId := get_ui_id($NotesSlider)
@@ -81,6 +81,7 @@ on init
     set_control_par($NotesSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
     declare ui_slider $RTSlider(1, 630000)
+    set_knob_defval($RTSlider, 630000)
     make_persistent($RTSlider)
     declare $RTSliderId
     $RTSliderId := get_ui_id($RTSlider)
@@ -88,6 +89,7 @@ on init
     set_control_par($RTSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
     declare ui_slider $PedalsSlider(1, 630000)
+    set_knob_defval($PedalsSlider, 630000)
     make_persistent($PedalsSlider)
     declare $PedalsSliderId
     $PedalsSliderId := get_ui_id($PedalsSlider)
