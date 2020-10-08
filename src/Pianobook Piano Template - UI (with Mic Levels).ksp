@@ -102,7 +102,7 @@ on init
     move_control_px($PedalsSlider, 495, 160)
 
     { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1,500000)
+    declare ui_slider $Vol(1,630000)
     make_persistent($Vol)
     declare $VolId
     $VolId := get_ui_id($Vol)
