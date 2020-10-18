@@ -45,21 +45,21 @@ on init
     declare $count
 
     { Declare top row of controls. These control volumes for the three busses. }
-    declare ui_slider $MicOneSlider(1, 500000)
+    declare ui_slider $MicOneSlider(1, 630000)
     make_persistent($MicOneSlider)
     declare $MicOneSliderId
     $MicOneSliderId := get_ui_id($MicOneSlider)
     set_control_par_str($MicOneSliderId, $CONTROL_PAR_PICTURE, "Vertical_Slider")
     set_control_par($MicOneSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $MicTwoSlider(1, 500000)
+    declare ui_slider $MicTwoSlider(1, 630000)
     make_persistent($MicTwoSlider)
     declare $MicTwoSliderId
     $MicTwoSliderId := get_ui_id($MicTwoSlider)
     set_control_par_str($MicTwoSliderId, $CONTROL_PAR_PICTURE, "Vertical_Slider")
     set_control_par($MicTwoSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $MicThreeSlider(1, 500000)
+    declare ui_slider $MicThreeSlider(1, 630000)
     make_persistent($MicThreeSlider)
     declare $MicThreeSliderId
     $MicThreeSliderId := get_ui_id($MicThreeSlider)
@@ -100,7 +100,7 @@ on init
     move_control_px($PedalsSlider, 495, 160)
 
     { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1,500000)
+    declare ui_slider $Vol(1, 630000)
     make_persistent($Vol)
     declare $VolId
     $VolId := get_ui_id($Vol)

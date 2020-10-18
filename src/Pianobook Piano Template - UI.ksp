@@ -35,21 +35,21 @@ on init
     declare $count
 
     { Declare top row of controls. These control volumes for the three busses. }
-    declare ui_slider $One(1, 500000)
+    declare ui_slider $One(1, 630000)
     make_persistent($One)
     declare $OneId
     $OneId := get_ui_id($One)
     set_control_par_str($OneId, $CONTROL_PAR_PICTURE, "ARC_Knob")
     set_control_par($OneId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $Two(1, 500000)
+    declare ui_slider $Two(1, 630000)
     make_persistent($Two)
     declare $TwoId
     $TwoId := get_ui_id($Two)
     set_control_par_str($TwoId, $CONTROL_PAR_PICTURE, "ARC_Knob")
     set_control_par($TwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $Three(1, 500000)
+    declare ui_slider $Three(1, 630000)
     make_persistent($Three)
     declare $ThreeId
     $ThreeId := get_ui_id($Three)
@@ -62,7 +62,7 @@ on init
     move_control_px($Three,395,95)
 
     { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1,500000)
+    declare ui_slider $Vol(1,630000)
     make_persistent($Vol)
     declare $VolId
     $VolId := get_ui_id($Vol)
