@@ -35,7 +35,7 @@ on init
     make_perfview
 
     { Set the UI height and width for a our Performance View }
-    set_ui_height_px(360) 
+    set_ui_height_px(280) 
     set_ui_width_px(633)
 
     set_control_par_str($INST_ICON_ID,$CONTROL_PAR_PICTURE,"BLANK_ICON")
@@ -45,21 +45,21 @@ on init
     declare $count
 
     { Declare top row of controls. These control volumes for the three busses. }
-    declare ui_slider $MicOneSlider(1, 630000)
+    declare ui_slider $MicOneSlider(1, 6300)
     make_persistent($MicOneSlider)
     declare $MicOneSliderId
     $MicOneSliderId := get_ui_id($MicOneSlider)
     set_control_par_str($MicOneSliderId, $CONTROL_PAR_PICTURE, "Vertical_Slider")
     set_control_par($MicOneSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $MicTwoSlider(1, 630000)
+    declare ui_slider $MicTwoSlider(1, 6300)
     make_persistent($MicTwoSlider)
     declare $MicTwoSliderId
     $MicTwoSliderId := get_ui_id($MicTwoSlider)
     set_control_par_str($MicTwoSliderId, $CONTROL_PAR_PICTURE, "Vertical_Slider")
     set_control_par($MicTwoSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $MicThreeSlider(1, 630000)
+    declare ui_slider $MicThreeSlider(1, 6300)
     make_persistent($MicThreeSlider)
     declare $MicThreeSliderId
     $MicThreeSliderId := get_ui_id($MicThreeSlider)
@@ -67,9 +67,9 @@ on init
     set_control_par($MicThreeSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
     { Positions the top row of controls }
-    move_control_px($MicOneSlider,  128, 205)
-    move_control_px($MicTwoSlider,  173, 205)
-    move_control_px($MicThreeSlider,218, 205)
+    move_control_px($MicOneSlider,  122, 155)
+    move_control_px($MicTwoSlider,  167, 155)
+    move_control_px($MicThreeSlider,212, 155)
 
     { Declare knobs for the middle row of controls }
     declare ui_slider $NotesSlider(1, 630000)
@@ -95,12 +95,12 @@ on init
     set_control_par($PedalsSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
     { Positions the top row of controls }
-    move_control_px($NotesSlider,  295, 160)
-    move_control_px($RTSlider,     395, 160)
-    move_control_px($PedalsSlider, 495, 160)
+    move_control_px($NotesSlider,  295, 95)
+    move_control_px($RTSlider,     395, 95)
+    move_control_px($PedalsSlider, 495, 95)
 
     { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1, 630000)
+    declare ui_slider $Vol(0, 100)
     make_persistent($Vol)
     declare $VolId
     $VolId := get_ui_id($Vol)
@@ -122,25 +122,30 @@ on init
     set_control_par($FxTwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR,$controlSensitivity)
 
     { Positions the bottom row of controls }
-    move_control_px($Vol,   295, 250)
-    move_control_px($FxOne, 395, 250)
-    move_control_px($FxTwo, 495, 250)
+    move_control_px($Vol,   295, 195)
+    move_control_px($FxOne, 395, 195)
+    move_control_px($FxTwo, 495, 195)
+
+    declare $VolLevel
 
 end on
 
 on ui_control($MicOneSlider)
     { Sets the volume of the `Group 1` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $MicOneSlider,-1,-1,$NI_BUS_OFFSET + 0)
+    $VolLevel := $MicOneSlider * $Vol
+    set_engine_par($ENGINE_PAR_VOLUME, $VolLevel, -1, -1, $NI_BUS_OFFSET + 0)
 end on
 
 on ui_control($MicTwoSlider)
     { Sets the volume of the `Group 2` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $MicTwoSlider,-1,-1,$NI_BUS_OFFSET + 1)
+    $VolLevel := $MicTwoSlider * $Vol
+    set_engine_par($ENGINE_PAR_VOLUME, $VolLevel, -1, -1, $NI_BUS_OFFSET + 1)
 end on
 
 on ui_control($MicThreeSlider)
     { Sets the volume of the `Group 3` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $MicThreeSlider,-1,-1,$NI_BUS_OFFSET + 2)
+    $VolLevel := $MicThreeSlider * $Vol
+    set_engine_par($ENGINE_PAR_VOLUME, $VolLevel, -1, -1, $NI_BUS_OFFSET + 2)
 end on
 
 on ui_control($NotesSlider)
@@ -173,8 +178,16 @@ end on
 on ui_control($Vol)
     { This loops through all groups and sets their volume according to the $Vol knob. }
     $count := 0
-    while ($count < $NUM_GROUPS)
-        set_engine_par($ENGINE_PAR_VOLUME, $Vol, $count, -1, -1)
+    while ($count < 3)
+        select ($count)
+            case 0
+                $VolLevel := $MicOneSlider * $Vol
+            case 1
+                $VolLevel := $MicTwoSlider * $Vol
+            case 2
+                $VolLevel := $MicThreeSlider * $Vol 
+        end select
+        set_engine_par($ENGINE_PAR_VOLUME, $VolLevel, -1, -1, $NI_BUS_OFFSET + $count)
         inc($count)
     end while
 end on

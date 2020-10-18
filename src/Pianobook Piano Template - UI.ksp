@@ -4,14 +4,22 @@
   
   There are two scripts in this template. The first script is the UI Portion. 
   The second script controls the triggering of piano groups. The two scripts 
-  can be used independently of eachother.
+  can be used independently of eachother. There are also two versions of the UI script:
+  a simple version and a multiple mic version. This is the simple version.
   
-  Note triggering scripts by Dave Hilowitz
-  UI scripts by Angus-Roberts Carey (ARC Samples) 
+  UI scripts by Dave Hilowitz & Angus-Roberts Carey (ARC Samples)
 
 }
 
 on init
+
+    { These variables are used by the Notes, RT, and Pedal knobs. 
+      Remember to change the size of the  arrays (the number 
+      in brackets after the array name) if you add multiple groups to any of these.}
+
+    declare %note_groups[8]            := (0,1,2,3,4,5,6,7)
+    declare %release_trigger_groups[4] := (8,9,10,11)
+    declare %pedal_groups[8]           := (12,13,14,15,16,17,18,19)
 
     { This controls how responsive the knobs are. Make sure to keep this negative if you want this to be controllable via vertical dragging. }
     declare $controlSensitivity := -500
@@ -31,38 +39,39 @@ on init
     set_control_par_str($INST_ICON_ID,$CONTROL_PAR_PICTURE,"BLANK_ICON")
     set_control_par_str($INST_WALLPAPER_ID,$CONTROL_PAR_PICTURE,"Template_Skin")
 
-    { This variable will be used for setting volumes in the $Vol knob handler. }
+    { This variable will be used for setting volumes in the knob handlers below. }
     declare $count
 
     { Declare top row of controls. These control volumes for the three busses. }
-    declare ui_slider $One(1, 630000)
-    make_persistent($One)
-    declare $OneId
-    $OneId := get_ui_id($One)
-    set_control_par_str($OneId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($OneId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
+    declare ui_slider $NotesSlider(1, 630000)
 
-    declare ui_slider $Two(1, 630000)
-    make_persistent($Two)
-    declare $TwoId
-    $TwoId := get_ui_id($Two)
-    set_control_par_str($TwoId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($TwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
+    make_persistent($NotesSlider)
+    declare $NotesSliderId
+    $NotesSliderId := get_ui_id($NotesSlider)
+    set_control_par_str($NotesSliderId, $CONTROL_PAR_PICTURE, "ARC_Knob")
+    set_control_par($NotesSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
-    declare ui_slider $Three(1, 630000)
-    make_persistent($Three)
-    declare $ThreeId
-    $ThreeId := get_ui_id($Three)
-    set_control_par_str($ThreeId, $CONTROL_PAR_PICTURE, "ARC_Knob")
-    set_control_par($ThreeId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
+    declare ui_slider $RTSlider(1, 630000)
+    make_persistent($RTSlider)
+    declare $RTSliderId
+    $RTSliderId := get_ui_id($RTSlider)
+    set_control_par_str($RTSliderId, $CONTROL_PAR_PICTURE, "ARC_Knob")
+    set_control_par($RTSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
+
+    declare ui_slider $PedalsSlider(1, 630000)
+    make_persistent($PedalsSlider)
+    declare $PedalsSliderId
+    $PedalsSliderId := get_ui_id($PedalsSlider)
+    set_control_par_str($PedalsSliderId, $CONTROL_PAR_PICTURE, "ARC_Knob")
+    set_control_par($PedalsSliderId,$CONTROL_PAR_MOUSE_BEHAVIOUR, $controlSensitivity)
 
     { Positions the top row of controls }
-    move_control_px($One, 195,95)
-    move_control_px($Two,295,95)
-    move_control_px($Three,395,95)
+    move_control_px($NotesSlider,  195,95)
+    move_control_px($RTSlider,     295,95)
+    move_control_px($PedalsSlider, 395,95)
 
     { Declare knobs for the bottom row of controls }
-    declare ui_slider $Vol(1,630000)
+    declare ui_slider $Vol(1, 100)
     make_persistent($Vol)
     declare $VolId
     $VolId := get_ui_id($Vol)
@@ -84,34 +93,44 @@ on init
     set_control_par($FxTwoId,$CONTROL_PAR_MOUSE_BEHAVIOUR,$controlSensitivity)
 
     { Positions the bottom row of controls }
-    move_control_px($Vol, 195,195)
-    move_control_px($FxOne,295,195)
-    move_control_px($FxTwo,395,195)
+    move_control_px($Vol,   195, 195)
+    move_control_px($FxOne, 295, 195)
+    move_control_px($FxTwo, 395, 195)
+
+    declare $VolLevel
 
 end on
 
-on ui_control($One)
-    { Sets the volume of the `Group 1` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $One,-1,-1,$NI_BUS_OFFSET + 0)
+on ui_control($NotesSlider)
+    { Sets the volume of the `Notes` groups. }
+    $count := 0
+    while($count < num_elements(%note_groups))
+        set_engine_par($ENGINE_PAR_VOLUME, $NotesSlider, %note_groups[$count], -1, -1)
+        inc($count)
+    end while  
 end on
 
-on ui_control($Two)
-    { Sets the volume of the `Group 2` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $Two,-1,-1,$NI_BUS_OFFSET + 1)
+on ui_control($RTSlider)
+    { Sets the volume of the `Release Trigger` groups. }
+    $count := 0
+    while($count < num_elements(%release_trigger_groups))
+        set_engine_par($ENGINE_PAR_VOLUME, $RTSlider, %release_trigger_groups[$count], -1, -1)
+        inc($count)
+    end while
 end on
 
-on ui_control($Three)
-    { Sets the volume of the `Group 3` bus. }
-    set_engine_par($ENGINE_PAR_VOLUME, $Three,-1,-1,$NI_BUS_OFFSET + 2)
+on ui_control($PedalsSlider)
+    { Sets the volume of the `Pedal` groups. }
+    $count := 0
+    while($count < num_elements(%pedal_groups))
+        set_engine_par($ENGINE_PAR_VOLUME, $PedalsSlider, %pedal_groups[$count], -1, -1)
+        inc($count)
+    end while 
 end on
 
 on ui_control($Vol)
-    { This loops through all groups and sets their volume according to the $Vol knob. }
-    $count := 0
-    while ($count < $NUM_GROUPS)
-        set_engine_par($ENGINE_PAR_VOLUME, $Vol, $count, -1, -1)
-        inc($count)
-    end while
+    $VolLevel := 6300 * $Vol
+    set_engine_par($ENGINE_PAR_VOLUME, $VolLevel, -1, -1, $NI_BUS_OFFSET)
 end on
 
 on ui_control($FxOne)
