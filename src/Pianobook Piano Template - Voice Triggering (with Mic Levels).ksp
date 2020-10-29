@@ -82,8 +82,12 @@ function func_play_note
             $tmp_num_round_robins := num_elements(%release_trigger_groups) / $NUM_MICS
         case 4
             $tmp_num_round_robins := num_elements(%pedal_down_groups) / $NUM_MICS
+            $func_play_note_midi_note := 64
+            $func_play_note_velocity := 64
         case 5
             $tmp_num_round_robins := num_elements(%pedal_up_groups) / $NUM_MICS
+            $func_play_note_midi_note := 64
+            $func_play_note_velocity := 64
     end select
 
     if($tmp_num_round_robins <= 0)
