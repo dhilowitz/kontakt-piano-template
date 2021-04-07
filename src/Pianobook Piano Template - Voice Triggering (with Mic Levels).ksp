@@ -68,6 +68,8 @@ on init
     declare $tmp_num_round_robins
     declare $tmp_last_rr
     declare %last_rr[5] := (0,0,0,0,0)
+    declare %notes_playing[128]
+    
 end on
 
 function func_play_note
@@ -119,7 +121,14 @@ function func_play_note
     $tmp_note_id := play_note($func_play_note_midi_note, $func_play_note_velocity, 0, -1) 
     set_event_par_arr($tmp_note_id,$EVENT_PAR_ALLOW_GROUP,0,$ALL_GROUPS)
 
-    message("RR: " & $tmp_rr)
+    if($func_play_note_type = 1)
+        if (%notes_playing[$func_play_note_midi_note] > 0)
+            fade_out(%notes_playing[$func_play_note_midi_note], 20000, 1)
+        end if
+        %notes_playing[$func_play_note_midi_note] := $tmp_note_id
+    end if
+
+    { message("RR: " & $tmp_rr) }
     %last_rr[$func_play_note_type-1] := $tmp_rr
     $i:= 0
     while($i<$NUM_MICS)
